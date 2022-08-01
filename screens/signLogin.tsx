@@ -1,45 +1,79 @@
-import { Button, NativeSyntheticEvent, StyleSheet, Text, TextInput, TextInputChangeEventData, TouchableOpacity, View } from 'react-native'
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { StatusBar } from 'expo-status-bar'
 import theme from '../styles/colors';
 import { useState } from 'react';
 import axios from 'axios';
-import { useGlobalContext } from '../context/global';
+import { useGlobalContext } from '../context/global'
+import validator from 'validator'
+import { useNavigation } from '@react-navigation/native'
+import { RootStackParamList } from '../interface/navigation';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { FormBttn, TI } from '../components/form';
 
 interface ValuesI {
   email: string,
   password: string
 }
 
-const SignLogin = () => {
-    const [ values, setValues ] = useState<ValuesI>({
-      email: "",
-      password: ""
-    })
-    const [ erros, setErrors ] = useState<ValuesI>({
-      email: "",
-      password: ""
-    })
-    const [ invalid, setInvalid ] = useState<string>("")
-    const { global, setGlobal } = useGlobalContext()
+type loginScreenProps = NativeStackNavigationProp<RootStackParamList, 'login'>
 
+const Login = () => {
+  const [ values, setValues ] = useState<ValuesI>({
+    email: "",
+    password: ""
+  })
+  const [ errors, setErrors ] = useState<ValuesI>({
+    email: "",
+    password: ""
+  })
+  const [ invalid, setInvalid ] = useState<string>("")
+  const { global, setGlobal } = useGlobalContext()
+  
+  const navigation = useNavigation<loginScreenProps>()
 
-    const handleChange = (input: "email" | "password", value: string) => {
-      setValues({
-        ...values,
-        [input]: value
-      })
+  const handleChange = (input: "email" | "password", value: string) => {
+    setValues({
+      ...values,
+      [input]: value
+    })
+  }
+
+    const validate = (): boolean => {
+      let { email, password } = values
+
+      if(!email) {
+        email = "please enter an email"
+      } else if(!validator.isEmail(email.trim())) {
+        email = "invalid email"
+      } else {
+        email = ""
+      }
+
+      if(!password) {
+        password = "please enter a password"
+      } else if(password.length < 3) {
+        password = "password must be more than 3 characters"
+      } else {
+        password = ""
+      }
+
+      setErrors({ email, password })
+
+      return !email && !password ? true : false
     }
 
     const login = async () => {
       try {
-        const loginData: any = await axios.post('https://guarded-temple-56367.herokuapp.com/client/login', {
+        const isValid = validate()
+
+        if(!isValid) return
+
+        const receivedToken: string = await axios.post(`${ process.env.React_APP_API }/client/login`, {
           username: values.email.trim(),
           password: values.password
-        })
+        }).then(res => res.data)
 
         setInvalid("")
-
-        const receivedToken: string = loginData.data
 
         setGlobal({
           ...global,
@@ -69,31 +103,31 @@ const SignLogin = () => {
             </View>
 
             <View style={styles.form}>
-              <Text 
-                style={styles.label}
-              >Email:</Text>
-              <TextInput 
-                style={styles.textInput}
-                onChangeText={ (e) => handleChange("email", e) }
+              <TI 
+                label='Email'
+                name='email'
+                handleChange={ handleChange }
                 value={ values.email }
+                error={ errors.email }
               />
-              <Text style={styles.label}>Password:</Text>
-              <TextInput 
-                style={styles.textInput}
-                onChangeText={ (e) => handleChange("password", e) }
+
+              <TI 
+                label='Password'
+                name='password'
+                handleChange={ handleChange }
                 value={ values.password }
+                error={ errors.password }
               />
-              <TouchableOpacity 
-                style={styles.loginBttn}
-                onPress={() => login()}
-              >
-                <Text style={styles.bttnTxt}>Login</Text>
-              </TouchableOpacity>
+
+              <FormBttn title='Login' onPress={ login }/>
             </View>
 
             { invalid !== "" && <Text style={ styles.invalidText }>{ invalid }</Text> }
 
-            <TouchableOpacity style={styles.signUpBttn}>
+            <TouchableOpacity 
+              style={styles.signUpBttn}
+              onPress={ () => navigation.navigate('signup') }
+            >
               <Text style={styles.signUpBttnTxt}>Sign Up</Text>
             </TouchableOpacity>
             <StatusBar style="auto" />
@@ -124,26 +158,6 @@ const styles = StyleSheet.create({
       textAlign: 'left',
       minHeight: 90,
     },
-    label: {
-      color: theme.inputLabel,
-      fontSize: 20,
-    },
-    textInput: {
-      paddingHorizontal: 8,
-      paddingVertical: 4,
-      fontSize: 20,
-      backgroundColor: theme.inputBackground,
-      marginBottom: 10,
-      borderRadius: 10
-    },
-    loginBttn: {
-      marginTop: 20,
-      backgroundColor: theme.inputBackground,
-      borderRadius: 100,
-      alignItems: 'center',
-      paddingHorizontal: 8,
-      paddingVertical: 4,
-    },
     signUpBttn: {
       backgroundColor: theme.buttonBackground,
       width: 180,
@@ -151,12 +165,6 @@ const styles = StyleSheet.create({
       borderRadius: 100,
       justifyContent: 'center',
       marginTop: 20,
-    },
-    bttnTxt: {
-      color: theme.buttonText,
-      fontSize: 20,
-      // textAlign: 'center',
-      alignSelf: 'center'
     },
     signUpBttnTxt: {
       color: theme.buttonText,
@@ -171,5 +179,5 @@ const styles = StyleSheet.create({
     }
   });
 
-export default SignLogin
+export default Login
   
