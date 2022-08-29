@@ -1,14 +1,17 @@
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { StatusBar } from 'expo-status-bar'
-import theme from '../styles/colors';
-import { useState } from 'react';
+import theme from '../../styles/colors';
+import { useEffect, useState } from 'react';
 import axios from 'axios';
-import { useGlobalContext } from '../context/global'
+import { useGlobalContext } from '../../context/global'
 import validator from 'validator'
 import { useNavigation } from '@react-navigation/native'
-import { RootStackParamList } from '../interface/navigation';
+import { RootStackParamList } from '../../interface/navigation';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { FormBttn, TI } from '../components/form';
+import { FormBttn, TI } from '../../components/form';
+import { apiUrl } from '../../constants/values';
+import useAsyncEffect from 'use-async-effect';
+import isEmail from 'validator/lib/isEmail';
 
 interface ValuesI {
   email: string,
@@ -28,6 +31,7 @@ const Login = () => {
   })
   const [ invalid, setInvalid ] = useState<string>("")
   const { global, setGlobal } = useGlobalContext()
+  const [ submit, setSubmit ] = useState<boolean>(false)
   
   const navigation = useNavigation<loginScreenProps>()
 
@@ -64,28 +68,23 @@ const Login = () => {
 
     const login = async () => {
       try {
-        const isValid = validate()
+        if(!validate()) return
 
-        if(!isValid) return
-
-        const receivedToken: string = await axios.post(`${ process.env.React_APP_API }/client/login`, {
+        const receivedToken: string = await axios.post(`${ apiUrl }/client/login`, {
           username: values.email.trim(),
           password: values.password
         }).then(res => res.data)
 
         setInvalid("")
 
-        setGlobal({
-          ...global,
-          token: receivedToken
-        })
+        setGlobal({ ...global, token: receivedToken })
+
+        navigation.navigate('creating')
       } 
       catch (e: any) {
-        setValues({
-          ...values,
-          password: ""
-        })
+        setValues({ ...values, password: "" })
 
+        console.log(e.response)
         if(e.response.status === 401) {
           setInvalid("Invalid username or password")
         }
@@ -94,7 +93,6 @@ const Login = () => {
         }
       }
     }
-
 
     return (
         <View style={styles.container}>
@@ -119,7 +117,7 @@ const Login = () => {
                 error={ errors.password }
               />
 
-              <FormBttn title='Login' onPress={ login }/>
+              <FormBttn title='Login' onPress={ async () => await login() }/>
             </View>
 
             { invalid !== "" && <Text style={ styles.invalidText }>{ invalid }</Text> }

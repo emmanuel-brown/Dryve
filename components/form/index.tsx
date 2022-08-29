@@ -1,7 +1,6 @@
 import React from 'react'
 import { Text, View, TextInput, TouchableOpacity, KeyboardTypeOptions } from 'react-native'
 import SelectDropdown from 'react-native-select-dropdown'
-import theme from '../../styles/colors'
 import { TIStyles, formBttnStyles, dropdownStyles } from './formCSS'
 import { MaskedTextInput, MaskedTextInputProps } from 'react-native-mask-text'
 
@@ -51,7 +50,7 @@ export const TI: React.FC<TII> = ({
                 secureTextEntry={ secureTextEntry }
                 /> : <MaskedTextInput
                 style={TIStyles.textInput}
-                onChangeText={ (text, raw) => {
+                onChangeText={(text, raw) => {
                     handleChange(
                         name,
                         acceptMask ? text : raw

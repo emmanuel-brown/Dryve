@@ -1,11 +1,15 @@
+import { useNavigation } from '@react-navigation/native'
+import { NativeStackNavigationProp } from '@react-navigation/native-stack'
 import axios from 'axios'
 import React, { useEffect, useState } from 'react'
 import { View, Text, StyleSheet } from 'react-native'
-import { FormBttn, Selector, TI } from '../../components/form'
-import { statesShort } from '../../constants/address'
-import { dateToUnix } from '../../constants/time'
-import validation from '../../constants/validation'
-import theme from '../../styles/colors'
+import { FormBttn, Selector, TI } from '../../../components/form'
+import { statesShort } from '../../../constants/address'
+import { dateToUnix } from '../../../constants/time'
+import validation from '../../../constants/validation'
+import { useGlobalContext } from '../../../context/global'
+import { RootStackParamList } from '../../../interface/navigation'
+import theme from '../../../styles/colors'
 import AddressInfo from './address'
 import GeneralInfo from './general'
 import SetupPass from './setPassword'
@@ -25,7 +29,10 @@ export interface ValuesI {
     secPassword: string
 }
 
+type signUpProps = NativeStackNavigationProp<RootStackParamList, 'signup'>
+
 const SignUp = () => {
+    const { global, setGlobal } = useGlobalContext()
     const [ values, setValues ] = useState<ValuesI>({
         firstName: "Emmanuel",
         lastName: "Brown",
@@ -37,23 +44,11 @@ const SignUp = () => {
         zipcode: "28278",
         state: "NC",
         city: "Charlotte",
-        password: "",
-        secPassword: ""
+        password: "12345678",
+        secPassword: "12345678"
     })
-    const [ errors, setErrors ] = useState<ValuesI>({
-        firstName: "",
-        lastName: "",
-        phoneNumber: "",
-        email: "",
-        dob: "",
-        streetLineOne: "",
-        streetLineTwo: "",
-        zipcode: "",
-        state: "",
-        city: "",
-        password: "",
-        secPassword: ""
-    })
+
+    const navigation = useNavigation<signUpProps>()
 
     const [ form, setForm ] = useState<string>()
 
@@ -81,12 +76,18 @@ const SignUp = () => {
                 }
             }
 
-            const data = await axios.post(
+            navigation.navigate('creating')
+            const receivedToken = await axios.post(
                 'https://guarded-temple-56367.herokuapp.com/client/', 
                 postValues
             ).then(res => res.data)
 
-            console.log("create data: ", data)
+            setGlobal({
+                ...global,
+                token: receivedToken
+            })
+
+           
         } catch (e) {
             console.log(e)
         }

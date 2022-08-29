@@ -2,10 +2,10 @@ import axios from "axios"
 import React, { useEffect, useState } from "react"
 import { View, StyleSheet } from "react-native"
 import { ValuesI } from "."
-import { FormBttn, Selector, TI } from "../../components/form"
-import { statesShort } from "../../constants/address"
-import validation from "../../constants/validation"
-import theme from "../../styles/colors"
+import { FormBttn, Selector, TI } from "../../../components/form"
+import { statesShort } from "../../../constants/address"
+import validation from "../../../constants/validation"
+import theme from "../../../styles/colors"
 
 
 interface SignUpFormI {

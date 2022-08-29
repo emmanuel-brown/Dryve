@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react"
 import { View, StyleSheet } from "react-native"
 import { ValuesI } from "."
-import { FormBttn, TI } from "../../components/form"
-import validation from "../../constants/validation"
-import theme from "../../styles/colors"
+import { FormBttn, TI } from "../../../components/form"
+import validation from "../../../constants/validation"
+import theme from "../../../styles/colors"
 
 
 interface SignUpFormI {
@@ -59,8 +59,6 @@ const GeneralInfo: React.FC<SignUpFormI> = ({
         setFormErrors({...handledError})
 
         if(!Object.values(handledError).every(prop => prop === "")) return
-
-        console.log("it got here")
 
         setValues({ ...values, ...formValues })
 
