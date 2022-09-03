@@ -10,7 +10,9 @@ import { getLocationHandler, getMapPreview } from '../../constants/location'
 import { useGlobalContext } from '../../context/global'
 import { apiUrl, secureApi } from '../../data/requests'
 import locationHook from '../../hooks/location'
+import { CleanerI } from '../../interface/api'
 import { MapStackParamsList } from '../../interface/navigation'
+import { colors } from '../../styles/colors'
 
 type Region = {
     longitude: number
@@ -32,15 +34,8 @@ type mapProps = NativeStackNavigationProp<MapStackParamsList, 'map'>
 const Map: React.FC = () => {
     const { global, setGlobal } = useGlobalContext()
     const [ clnMarkers, setClnMarkers ] = useState<MarkerI[]>([])
-    const [ region, setRegion ] = useState<Region>({
-        longitude: 0,
-        latitude: 0,
-        //defaulting to charlotte, NC
-        // longitude: -80.843124,
-        // latitude: 35.227085,
-        latitudeDelta: .5,
-        longitudeDelta: .5
-    })
+    const [ region, setRegion ] = useState<Region | undefined>()
+    const [ loading, setLoading ] = useState<boolean>(true)
 
     const navigation = useNavigation<mapProps>()
 
@@ -51,66 +46,79 @@ const Map: React.FC = () => {
 
     const { location, token } = global
 
-    useAsyncEffect(async isActive => {
-        try {
-            //get user location
-            const theLocation = await getLocationHandler(true)
-
-            if(!isActive()) return
-            if(locationPermission) {
-                // getMapPreview(location.coords.latitude, location.coords.longitude)
-                if(!theLocation) return
-                setGlobal({ ...global, location: {
-                    longitude: theLocation.coords.longitude,
-                    latitude: theLocation.coords.latitude
-                }})
-                setRegion({
-                    longitude: theLocation.coords.longitude,
-                    latitude: theLocation.coords.latitude,
-                    latitudeDelta: 0.0421,
-                    longitudeDelta: 0.0922
-                })
-            } else {
-                if(!location) return
-                setRegion({
-                    longitude: location?.longitude ? location.longitude : -80.843124,
-                    latitude: location?.latitude ? location.latitude : 35.227085,
-                    latitudeDelta: 0.0421,
-                    longitudeDelta: 0.0922
-                })
-            }
-            
-        } catch(e) {
-            console.log(e)
-        }
+    useEffect(() => {
+        (async () => {
+            try {
+                //get user location
+                const theLocation = await getLocationHandler(true)
+                if(locationPermission && !global.location) {
+                    // getMapPreview(location.coords.latitude, location.coords.longitude)
+                    if(!theLocation) return
+                    setGlobal({ ...global, location: {
+                        longitude: theLocation.coords.longitude,
+                        latitude: theLocation.coords.latitude,
+                    }})
+                    setRegion({
+                        longitude: theLocation.coords.longitude,
+                        latitude: theLocation.coords.latitude,
+                        latitudeDelta: 0.0421,
+                        longitudeDelta: 0.0922
+                    })
+                } else {
+                    if(!location) return
+                    setRegion({
+                        longitude: location?.longitude,
+                        latitude: location?.latitude,
+                        latitudeDelta: 0.0421,
+                        longitudeDelta: 0.0922
+                    })
+                }
+            } catch(e) {
+                console.log(e)
+            }  
+        })()
     }, [])
 
     //when region updates
-    useAsyncEffect(async isActive => {
-        console.log('region: ', region)
-        if(region && token) {
-            const cleaners = await secureApi(token).post(`${apiUrl}/client/cleaners_nearby`, {
-                'latitude': region.latitude,
-                'longitude': region.longitude,
-                'maxDistance': 20
-            }).then(res => res.data)
-            .catch((e) => {
-                console.log('failed: ', 'get cleaners in map.tsx')
-            })
-            if(!isActive) return
+    useEffect(() => {
+        if(region) {
+            console.log('region on update: ', region)
+            const getNearbyCleaners = async () => {
+                const cleaners = secureApi(token).post<CleanerI[]>(`${apiUrl}/client/cleaners_nearby`, {
+                    'latitude': region.latitude,
+                    'longitude': region.longitude,
+                    'maxDistance': 20
+                }).then(res => {
+                    console.log('nearby cleaner data', res.data)
+                    return res.data
+                })
+                .catch((e) => {
+                    console.log('failed: ', 'get cleaners in map.tsx')
+                    return []
+                })
+                
+                return cleaners
+            }
 
-            setClnMarkers(cleaners.map((cln: any)=> ({
-                latitude: cln.address.location.coordinates[1],
-                longitude: cln.address.location.coordinates[0],
-                title: cln.name,
-                _id: cln._id
-            })))
+            getNearbyCleaners().then(cleaners => {
+                // if(!cleaners.length) return
+                setClnMarkers(cleaners.map((cln: CleanerI)=> ({
+                    latitude: cln.address.location.coordinates[1],
+                    longitude: cln.address.location.coordinates[0],
+                    title: cln.name,
+                    _id: cln._id
+                })))
+            })
+            .finally(() => {
+                setTimeout(() => setLoading(false), 1000)
+            })
         }
     }, [ region ])
 
+    if(loading) return <Text>Loading</Text>
     return (
-        <MapView 
-            region={ region.latitude ? region : undefined }
+        <MapView
+            // region={ undefined }
             style={styles.mapView}
             showsUserLocation={ true }
             provider='google'
@@ -118,9 +126,9 @@ const Map: React.FC = () => {
             showsPointsOfInterest={ false }
             userInterfaceStyle={ 'dark' }
         >
-            {clnMarkers.map(cln => <Marker
+            {clnMarkers && clnMarkers.map(cln => <Marker
                 key={cln._id}
-                pinColor='purple'
+                pinColor={colors.offGold}
                 title={ cln.title }
                 coordinate={{ latitude: cln.latitude, longitude: cln.longitude }}
                 onPress={() => navigation.navigate('cleanerInfo', { cleanerId: cln._id })}

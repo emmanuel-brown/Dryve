@@ -15,6 +15,9 @@ export default function Index() {
   const [ initialRouteName, setInitialRouteName ] = useState<keyof RootStackParamList>()
   const { global, setGlobal } = useGlobalContext()
 
+  if(global.loading) {
+    return <Text>Loading</Text>
+  }
   
   return (
     <>

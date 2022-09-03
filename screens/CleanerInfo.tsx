@@ -81,27 +81,7 @@ const CleanerInfo: React.FC = () => {
             </View>
             <ScrollView >
                 <View style={s.serviceContainer}>
-                    {cleaner.services.map(svs => <>
-                            <Service {...svs} />
-                            <Service {...svs} />
-                            <Service {...svs} />
-                            <Service {...svs} />
-                            <Service {...svs} />
-                            <Service {...svs} />
-                            <Service {...svs} />
-                            <Service {...svs} />
-                            <Service {...svs} />
-                            <Service {...svs} />
-                            <Service {...svs} />
-                            <Service {...svs} />
-                            <Service {...svs} />
-                            <Service {...svs} />
-                            <Service {...svs} />
-                            <Service {...svs} />
-                            <Service {...svs} />
-                            <Service {...svs} />
-                        </>
-                    )}
+                    {cleaner.services.map(svs => <Service {...svs} /> )}
                 </View>
             </ScrollView>
         </View>
@@ -134,6 +114,7 @@ const s = StyleSheet.create({
     assignBttnTxt: {
         color: colors.offGold,
         fontSize: 18,
+        textAlign: 'center'
     },
     serviceContainer: {
         flexDirection: 'row',
@@ -152,6 +133,7 @@ const s = StyleSheet.create({
         color: colors.offGold,
         fontWeight: 'bold',
         fontSize: 20,
+        textAlign: 'center'
     },
     servPrice: {
         color: colors.secondaryOffGold,

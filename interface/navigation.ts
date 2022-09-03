@@ -23,7 +23,7 @@ export type MapStackParamsList = {
 export type OrderStackParams = {
     selectServices: {
         requests: ServiceI[]
-        setRequests: React.Dispatch<React.SetStateAction<ServiceI[] | undefined>>
+        setRequests: React.Dispatch<React.SetStateAction<ServiceI[] | []>>
     }
     pricing: {
         requests: ServiceI[]

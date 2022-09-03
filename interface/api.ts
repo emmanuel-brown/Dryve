@@ -10,6 +10,7 @@ export interface PointI {
 }
 
 export interface AddressI {
+    _id: string
     name?: string
     street_address_line_1: string
     street_address_line_2?: string
@@ -27,6 +28,14 @@ export interface ServiceI {
     price: number
     title: string
     description?: string
+}
+
+export type QuantityT = {
+    quantity: number
+}
+
+export type ServiceRequestsI = ServiceI & {
+    quantity: number
 }
 
 export interface CleanerI {

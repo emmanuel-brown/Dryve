@@ -16,7 +16,7 @@ const Home: React.FC<{token: string}> = ({
 
     return (
         <NavigationContainer>
-            <Tab.Navigator initialRouteName='map'>
+            <Tab.Navigator initialRouteName='order'>
                 <Tab.Screen 
                     name="map" 
                     component={ MapNavigation }

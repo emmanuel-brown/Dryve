@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Alert } from 'react-native'
 import { getCurrentPositionAsync, useForegroundPermissions, PermissionStatus } from 'expo-location'
 import useAsyncEffect from 'use-async-effect'
@@ -7,7 +7,7 @@ import { useGlobalContext } from '../context/global'
 const locationHook = () => {
     const { global, setGlobal } = useGlobalContext()
     const [ locationPermissionInformation, requestPermission ] = useForegroundPermissions()
-    const [ locationPerm, setLocationPerm ] = useState(false)
+    const [ locationPerm, setLocationPerm ] = useState<boolean>(false)
 
     const verifyPermission = async () => {
         if(locationPermissionInformation?.status === PermissionStatus.UNDETERMINED) {
@@ -43,16 +43,18 @@ const locationHook = () => {
         return location
     }
 
-    useAsyncEffect(async isActive => {
-        try {
+    useEffect(() => {
+        (async () => {
             const locPerm = await verifyPermission()
-            if(!isActive()) return
-
+                .catch((e) => { 
+                    console.log('location permission fail: ',e) 
+                    return false
+                })
             setLocationPerm(locPerm)
-        } catch(e) {
-            console.log(e)
-        }
-    })
+            if(!locPerm) return
+            await getLocationHandler(true)
+        })()
+    }, [])
 
     return {
         locationPermission: locationPerm,

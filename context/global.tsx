@@ -4,11 +4,13 @@ import { LocationObject } from 'expo-location';
 import React, { useState, createContext, Dispatch, SetStateAction, useEffect } from 'react';
 import useAsyncEffect from 'use-async-effect';
 import { apiUrl, secureApi } from '../data/requests';
+import locationHook from '../hooks/location';
 import { AddressI, CleanerI } from '../interface/api';
 
 
 export interface GlobalI {
     token: string
+    loading: boolean
     location?: {
         longitude: number,
         latitude: number
@@ -30,13 +32,18 @@ interface GlobalContextProps {
 const GlobalContextProvider = (props: GlobalContextProps) => {
     const [ global, setGlobal ] = useState<GlobalI>({
         token: "",
+        loading: true
     })
-    console.log('token: ', global.token)
-    useAsyncEffect(async isActive => {
-        try {
+
+    const { 
+        locationPermission, 
+        getLocationHandler
+    } = locationHook()
+
+    const retreiveToken = async () => {
+        try {    
             const token = await AsyncStorage.getItem('token')
-            console.log('token: ', await AsyncStorage.getItem('token'))
-            if(!isActive()) return
+            console.log('token: ', AsyncStorage.getItem('token'))
 
             if(token) setGlobal({ ...global, token })
 
@@ -46,30 +53,25 @@ const GlobalContextProvider = (props: GlobalContextProps) => {
         } catch(e) {
             console.log(e)
         }
-    }, [])
+    }
 
-    useAsyncEffect(async isActive => {
+    const handlePCleaner = async () => {
+        //get user's preferred cleaner data
+        return await secureApi(global.token).get<CleanerI>(`${apiUrl}/client/retreive/preferredCleaner`)
+            .then(res => {
+                console.log('data: ', res.data)
+                return res.data
+            })
+            .catch(e => {
+                console.log('failed: ', 'get preferredCleaner in global.tsx')
+                return undefined
+            })
+    }
+
+    const onTokenUpdate = async (token: string) => {
         try {
-            const token = global.token
-            AsyncStorage.setItem('token', token)
-            if(!isActive()) return
-
             if(token) {
-
-                //get user's preferred cleaner data
-                await secureApi(global.token).get<CleanerI>(`${apiUrl}client/retreive/preferredCleaner`)
-                    .then(res => {
-                        console.log('data: ', res.data)
-                        setGlobal({ ...global, preferredCleaner: res.data })
-                        return res.data
-                    })
-                    .catch((e) => {
-                        console.log('failed: ', 'get preferredCleaner in global.tsx')
-                    })
-                
-                
-
-                console.log('preferredCleaner', global.preferredCleaner)
+                AsyncStorage.setItem('token', token)
 
                 //get geo location from first pickup address
                 const getPickups: AddressI[] = await secureApi(token).get(`${ apiUrl }/client/retreive/pickups`)
@@ -77,18 +79,40 @@ const GlobalContextProvider = (props: GlobalContextProps) => {
                     .catch((e) => {
                         console.log('failed: ', 'get pickups in global.tsx')
                     })
-                if(!isActive()) return
+                
+                const pCleaner = await handlePCleaner()
                 
                 if(getPickups.length) {
-                    setGlobal({...global, location: {
-                        latitude: getPickups[0].location.coordinates[0],
-                        longitude: getPickups[0].location.coordinates[1]
-                    }})
+                    setGlobal({...global, 
+                        location: {
+                            latitude: getPickups[0].location.coordinates[0],
+                            longitude: getPickups[0].location.coordinates[1]
+                        },
+                        preferredCleaner: pCleaner
+                    })
                 }
             }
-
         } catch {
             console.log('unable to store token')
+        }
+    }
+
+    useEffect(() => {
+        (async () => {
+            try {
+                if(locationPermission) {
+                    await getLocationHandler(true)
+                }
+                await retreiveToken().finally(() => setGlobal({...global, loading: false}))
+            } finally {
+                setGlobal({...global, loading: false})
+            }
+        })()
+    }, [])
+
+    useEffect(() => {
+        if(global.token) {
+            onTokenUpdate(global.token).finally(() => setGlobal({ ...global, loading: false }))
         }
     }, [ global.token ])
 
