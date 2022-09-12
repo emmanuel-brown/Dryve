@@ -10,6 +10,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack'
 import { colors } from '../styles/colors'
 import { stringPrice } from '../constants/money'
 import axios from 'axios'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 
 type cleanerNavProps = NativeStackNavigationProp<MapStackParamsList, 'cleanerInfo'>
 
@@ -28,23 +29,29 @@ const Service = ({
 
 const CleanerInfo: React.FC = () => {
     const [ cleaner, setCleaner ] = useState<CleanerI>()
-    const { global } = useGlobalContext()
+    const [ assigned, setAssigned ] = useState<boolean>()
+    const { global, setGlobal } = useGlobalContext()
     const token = global.token
 
     const navigation = useNavigation<cleanerNavProps>()
     const { cleanerId } = useRoute<RouteProp<MapStackParamsList, 'cleanerInfo'>>().params
 
-    useAsyncEffect(async isActive => {
+    const handleCleaner = async () => {
         try {
-            const getCleaner: CleanerI = await secureApi(token).get(`/client/cleaner/${ cleanerId }`)
+            const getCleaner = await secureApi(token)
+                .get<CleanerI>(`/client/cleaner/${ cleanerId }`)
                 .then(res => res.data)
-            if(!isActive) return
 
             setCleaner(getCleaner)
+            if(getCleaner.preferred) setAssigned(true)
         } catch(e) {
             //redirect
             console.log(e)
         }
+    }
+
+    useEffect(() => {
+        handleCleaner()
     }, [])
 
     if(!cleaner) {
@@ -56,10 +63,13 @@ const CleanerInfo: React.FC = () => {
     }
 
     const setPreferredCleaner = async () => {
-        const preferredCleaner = await secureApi(token).put(`${apiUrl}/client/preferred_cleaner/${cleanerId}`)
-    }
-
-    const isAssigned = cleanerId === global.preferredCleaner?._id
+        await secureApi(token).put(`${apiUrl}/client/preferred_cleaner/${cleanerId}`)
+            .then(() => {
+                setAssigned(true)
+                setGlobal({ ...global, preferredCleaner: cleanerId })
+            })
+        AsyncStorage.setItem('requests', '[]')
+    } 
 
     return (
         <View style={s.container}>
@@ -69,11 +79,11 @@ const CleanerInfo: React.FC = () => {
                     <Text style={s.head}>{ cleaner.phoneNumber }</Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity onPress={() => !isAssigned && setPreferredCleaner}>
+                <TouchableOpacity onPress={() => !cleaner.preferred && setPreferredCleaner()}>
                     <View style={s.assignBttn}>
                         <Text style={s.assignBttnTxt}>{
-                            isAssigned ? 'Assign Cleaner'
-                            : 'Assigned Cleaner'
+                            assigned ? 'Assigned Cleaner'
+                            : 'Assign Cleaner'
                         }</Text>
                     </View>
                 </TouchableOpacity>

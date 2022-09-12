@@ -16,9 +16,9 @@ const Home: React.FC<{token: string}> = ({
 
     return (
         <NavigationContainer>
-            <Tab.Navigator initialRouteName='order'>
+            <Tab.Navigator initialRouteName='mapView'>
                 <Tab.Screen 
-                    name="map" 
+                    name="mapView" 
                     component={ MapNavigation }
                     options={{
                         tabBarLabel: 'Map',

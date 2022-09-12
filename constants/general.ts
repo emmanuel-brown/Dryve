@@ -11,7 +11,7 @@ import { QuantityT } from '../interface/api'
 export const uniqueWithQuantity = <T>(
     dataArray: T[], 
     unProp: keyof T
-): T[] & QuantityT[] => {
+): (T & QuantityT)[] => {
     type WithQ = T & QuantityT
     let addedProps: WithQ[] = []
     for(const data of _.uniqBy(dataArray, unProp)) {

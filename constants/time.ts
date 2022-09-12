@@ -6,10 +6,12 @@ export const unixDateFormatter = (value: string): string => {
     return moment.unix(parseInt(value)).format("MM/DD/YYYY hh:mm a")
 }
 
+//convert date to unix
 export const dateToUnix = (date: string): number => {
     return moment(date.trim(), "MM/DD/YYYY").unix() 
 }
 
+//is valid unix date
 export const isUnixDate = (value: number): boolean => {
     const date = moment.unix(value).format("YYYY/MM/DD")
     return validator.isDate(date)

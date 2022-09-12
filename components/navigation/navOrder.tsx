@@ -4,8 +4,8 @@ import Map from '../../components/map/map'
 import CleanerInfo from "../../screens/CleanerInfo"
 import { useEffect, useState } from "react"
 import { ServiceI } from "../../interface/api"
-import selectServices from "../../screens/SelectServices"
-import AsyncStorage from "@react-native-async-storage/async-storage"
+import selectServices from "../../screens/order/SelectServices"
+import Pricing from "../../screens/order/Pricing"
 
 
 const Stack = createNativeStackNavigator<OrderStackParams>()
@@ -16,17 +16,19 @@ const Stack = createNativeStackNavigator<OrderStackParams>()
         unmounts
 */
 const OrderNavigation = () => {
-        
-
     /* 
-    initialRouteName should be checking if
-    requests already exists
+        initialRouteName should be checking if
+        requests already exists
     */
     return (
-        <Stack.Navigator initialRouteName={ 'selectServices' }>
+        <Stack.Navigator initialRouteName={ 'selectServices' } id='order'>
             <Stack.Screen
                 name='selectServices'
                 component={ selectServices }
+            />
+            <Stack.Screen
+                name='pricing'
+                component={ Pricing }
             />
         </Stack.Navigator>
     )

@@ -1,15 +1,18 @@
-import { useNavigation } from '@react-navigation/native'
+import { useFocusEffect, useNavigation } from '@react-navigation/native'
 import { NativeStackNavigationProp } from '@react-navigation/native-stack'
 import axios from 'axios'
 import { getCurrentPositionAsync, useForegroundPermissions, PermissionStatus } from 'expo-location'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { StyleSheet, Text, Alert } from 'react-native'
 import MapView, { Marker } from 'react-native-maps'
 import useAsyncEffect from 'use-async-effect'
 import { getLocationHandler, getMapPreview } from '../../constants/location'
 import { useGlobalContext } from '../../context/global'
-import { apiUrl, secureApi } from '../../data/requests'
+import { apiUrl, getNearByClns, secureApi } from '../../data/requests'
 import locationHook from '../../hooks/location'
+import driverTracking from '../../hooks/orderHook'
+import pickupsHook from '../../hooks/pickupAddress'
+import preferredCleanerHook from '../../hooks/preferredCleaner'
 import { CleanerI } from '../../interface/api'
 import { MapStackParamsList } from '../../interface/navigation'
 import { colors } from '../../styles/colors'
@@ -33,92 +36,98 @@ type mapProps = NativeStackNavigationProp<MapStackParamsList, 'map'>
 
 const Map: React.FC = () => {
     const { global, setGlobal } = useGlobalContext()
-    const [ clnMarkers, setClnMarkers ] = useState<MarkerI[]>([])
+    const [ clnMarkers, setClnMarkers ] = useState<CleanerI[]>([])
     const [ region, setRegion ] = useState<Region | undefined>()
     const [ loading, setLoading ] = useState<boolean>(true)
+    const [ error, setError ] = useState<boolean>(false)
 
     const navigation = useNavigation<mapProps>()
 
     const { 
         locationPermission, 
         getLocationHandler 
-    } = locationHook()
+    } = locationHook(global, setGlobal)
 
     const { location, token } = global
 
-    useEffect(() => {
-        (async () => {
-            try {
-                //get user location
-                const theLocation = await getLocationHandler(true)
-                if(locationPermission && !global.location) {
-                    // getMapPreview(location.coords.latitude, location.coords.longitude)
-                    if(!theLocation) return
-                    setGlobal({ ...global, location: {
-                        longitude: theLocation.coords.longitude,
-                        latitude: theLocation.coords.latitude,
-                    }})
-                    setRegion({
-                        longitude: theLocation.coords.longitude,
-                        latitude: theLocation.coords.latitude,
-                        latitudeDelta: 0.0421,
-                        longitudeDelta: 0.0922
-                    })
-                } else {
-                    if(!location) return
-                    setRegion({
-                        longitude: location?.longitude,
-                        latitude: location?.latitude,
-                        latitudeDelta: 0.0421,
-                        longitudeDelta: 0.0922
-                    })
-                }
-            } catch(e) {
-                console.log(e)
-            }  
-        })()
-    }, [])
+    const { driverLoc, driver } = driverTracking(token)
 
-    //when region updates
-    useEffect(() => {
-        if(region) {
-            console.log('region on update: ', region)
-            const getNearbyCleaners = async () => {
-                const cleaners = secureApi(token).post<CleanerI[]>(`${apiUrl}/client/cleaners_nearby`, {
-                    'latitude': region.latitude,
-                    'longitude': region.longitude,
-                    'maxDistance': 20
-                }).then(res => {
-                    console.log('nearby cleaner data', res.data)
-                    return res.data
-                })
-                .catch((e) => {
-                    console.log('failed: ', 'get cleaners in map.tsx')
-                    return []
-                })
-                
-                return cleaners
+    const pickupData = pickupsHook(token)
+    const { pickupAddress, pickups } = pickupData
+
+    const handleRegion = async () => {
+        try {
+            //get user location
+            const theLocation = await getLocationHandler(true)
+
+            let forRegion: Region = {
+                longitude: 0,
+                latitude: 0,
+                latitudeDelta: 0,
+                longitudeDelta: 0
             }
 
-            getNearbyCleaners().then(cleaners => {
-                // if(!cleaners.length) return
-                setClnMarkers(cleaners.map((cln: CleanerI)=> ({
-                    latitude: cln.address.location.coordinates[1],
-                    longitude: cln.address.location.coordinates[0],
-                    title: cln.name,
-                    _id: cln._id
-                })))
-            })
-            .finally(() => {
-                setTimeout(() => setLoading(false), 1000)
-            })
+            if(pickupAddress) {
+                // getMapPreview(location.coords.latitude, location.coords.longitude)
+                // if(!theLocation) return
+                forRegion = {
+                    longitude: pickupAddress.location.coordinates[1],
+                    latitude: pickupAddress.location.coordinates[0],
+                    latitudeDelta: 0.0421,
+                    longitudeDelta: 0.0922
+                }
+            } else {
+                console.log('theLocation: ', theLocation)
+                if(!theLocation) return
+                forRegion = {
+                    longitude: theLocation.coords.longitude,
+                    latitude: theLocation.coords.latitude,
+                    latitudeDelta: 0.0421,
+                    longitudeDelta: 0.0922
+                }
+            }
+
+            if(forRegion.latitude && forRegion.longitude) {
+                const cleanersData = await getNearByClns(
+                    token,
+                    forRegion.latitude,
+                    forRegion.longitude,
+                    20
+                )
+
+                setClnMarkers(cleanersData)
+                setRegion(forRegion)
+            } else {
+                // setError(true)
+                throw ''
+            }
+        } catch(e) {
+            console.log(e)
         }
-    }, [ region ])
+    }
+
+    useFocusEffect(
+        useCallback(() => {
+            // pickupData.reRender(1)
+            handleRegion()
+                .finally(() => {
+                    setLoading(false)
+                })
+        }, [])
+    )
 
     if(loading) return <Text>Loading</Text>
+
+    const onCleanerPress = (cleanerId: string) => {
+        setLoading(true)
+        navigation.navigate('cleanerInfo', { cleanerId })
+    }
+
+    if(error) return <Text>Unable to access location</Text>
+    
     return (
         <MapView
-            // region={ undefined }
+            region={ region }
             style={styles.mapView}
             showsUserLocation={ true }
             provider='google'
@@ -128,12 +137,26 @@ const Map: React.FC = () => {
         >
             {clnMarkers && clnMarkers.map(cln => <Marker
                 key={cln._id}
-                pinColor={colors.offGold}
-                title={ cln.title }
-                coordinate={{ latitude: cln.latitude, longitude: cln.longitude }}
-                onPress={() => navigation.navigate('cleanerInfo', { cleanerId: cln._id })}
+                pinColor={ cln.preferred ? colors.black : colors.offGold }
+                title={ cln.name }
+                coordinate={{ 
+                    latitude: cln.address.location.coordinates[1], 
+                    longitude: cln.address.location.coordinates[0]
+                }}
+                onPress={() => onCleanerPress(cln._id)}
                 identifier={ cln._id }
             />)}
+
+            {driverLoc && <Marker
+                key={ driver?._id }
+                pinColor='blue'
+                title={`${driver?.firstName} ${driver?.lastName}`}
+                identifier={ driver?._id }
+                coordinate={{
+                    latitude: driverLoc.latitude,
+                    longitude: driverLoc.longitude
+                }}
+            />}
         </MapView>
     )
 }

@@ -1,17 +1,16 @@
 import { useEffect, useState } from "react"
-import { useGlobalContext } from "../context/global"
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native'
-import { QuantityT, ServiceI, ServiceRequestsI } from "../interface/api"
-import { colors } from "../styles/colors"
-import { OrderStackParams } from "../interface/navigation"
+import { useGlobalContext } from "../../context/global"
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions } from 'react-native'
+import { QuantityT, ServiceI, ServiceRequestsI } from "../../interface/api"
+import { colors } from "../../styles/colors"
+import { OrderStackParams } from "../../interface/navigation"
 import { NativeStackNavigationProp } from "@react-navigation/native-stack"
 import { RouteProp, useNavigation, useRoute } from "@react-navigation/native"
-import { stringPrice } from "../constants/money"
-import { storeItem, uniqueWithQuantity } from "../constants/general"
-import { NavigationScreenProp } from "react-navigation"
-import AsyncStorage from "@react-native-async-storage/async-storage"
-import RequestsHook from "../hooks/requests"
+import { stringPrice } from "../../constants/money"
+import { storeItem, uniqueWithQuantity } from "../../constants/general"
+import RequestsHook from "../../hooks/requests"
 import _ from "lodash"
+import preferredCleanerHook from "../../hooks/preferredCleaner"
 
 interface RequestsI  {
     title: string
@@ -82,12 +81,15 @@ const Service = ({
 const SelectServices: React.FC = () => {
     const { global, setGlobal } = useGlobalContext()
     const navigation = useNavigation<SelectServicesProps>()
-    const { requests, setRequests } = RequestsHook()
+    const { 
+        preferredCleaner,
+        requests,
+        setRequests 
+    } = preferredCleanerHook(global.token)   
 
     const addMinus = (service: ServiceI, isMinus?: boolean) => {
         if(!isMinus) {
             setRequests([...requests, service ])
-            console.log('reqeuests', requests)
         } else {
             /*
                 okay so there is a much better
@@ -109,10 +111,9 @@ const SelectServices: React.FC = () => {
             setRequests(newReqs)
         }
     }
-    
 
     //cln is short for cleaner
-    const cln = global.preferredCleaner
+    const cln = preferredCleaner
     if(!cln?._id) return (
         <Text>No preferred cleaner</Text>
     )
@@ -144,6 +145,12 @@ const SelectServices: React.FC = () => {
                         />)}
                 </ScrollView>
             </View>
+            <TouchableOpacity
+                onPress={() => navigation.navigate('pricing')}
+                style={s.sumbitBttn}
+            >
+                <Text style={s.submitBttnTxt}>Request</Text>
+            </TouchableOpacity>
         </View>
     )
 }
@@ -236,6 +243,24 @@ const s = StyleSheet.create({
     },
     opTxt: {
         color: 'white',
+        fontSize: 20,
+    },
+    sumbitBttn: {
+        position: 'absolute',
+        left: '50%',
+        transform: [{ 
+            translateX: -(Dimensions.get('window').width / 3)
+        }],
+        bottom: 30,
+        height: 80,
+        backgroundColor: colors.orange,
+        width: '70%',
+        borderRadius: 100,
+        justifyContent: 'center',
+        alignItems: 'center'
+    },
+    submitBttnTxt: {
+        textAlign: 'center',
         fontSize: 20,
     }
 })

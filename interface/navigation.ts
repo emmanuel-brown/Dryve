@@ -9,7 +9,7 @@ export type RootStackParamList = {
 }
 
 export type MainButtonParams = {
-    map: undefined
+    mapView: undefined
     order: undefined
 }
 
@@ -25,8 +25,6 @@ export type OrderStackParams = {
         requests: ServiceI[]
         setRequests: React.Dispatch<React.SetStateAction<ServiceI[] | []>>
     }
-    pricing: {
-        requests: ServiceI[]
-    }
+    pricing: undefined
 }
 

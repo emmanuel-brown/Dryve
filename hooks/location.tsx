@@ -2,10 +2,12 @@ import { useEffect, useState } from 'react'
 import { Alert } from 'react-native'
 import { getCurrentPositionAsync, useForegroundPermissions, PermissionStatus } from 'expo-location'
 import useAsyncEffect from 'use-async-effect'
-import { useGlobalContext } from '../context/global'
+import { GlobalI, useGlobalContext } from '../context/global'
 
-const locationHook = () => {
-    const { global, setGlobal } = useGlobalContext()
+const locationHook = (
+    global: GlobalI,
+    setGlobal: React.Dispatch<React.SetStateAction<GlobalI>>
+) => {
     const [ locationPermissionInformation, requestPermission ] = useForegroundPermissions()
     const [ locationPerm, setLocationPerm ] = useState<boolean>(false)
 

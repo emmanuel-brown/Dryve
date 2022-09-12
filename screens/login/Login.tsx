@@ -70,7 +70,7 @@ const Login = () => {
       try {
         if(!validate()) return
 
-        const receivedToken: string = await axios.post(`${ apiUrl }/client/login`, {
+        const receivedToken = await axios.post<string>(`${ apiUrl }/client/login`, {
           username: values.email.trim(),
           password: values.password
         }).then(res => res.data)

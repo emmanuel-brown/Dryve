@@ -10,7 +10,7 @@ export const colors = {
     orange: "orange"
 }
 
-const theme = {
+export const theme = {
     header: colors.offGold,
     background: colors.darkGrey,
     buttonBackground: colors.offGold,
