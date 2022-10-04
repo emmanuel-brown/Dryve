@@ -1,15 +1,13 @@
 import { useState, useEffect } from 'react'
 import { View, Text, Linking, StyleSheet, Touchable, TouchableOpacity, ScrollView } from 'react-native'
-import useAsyncEffect from 'use-async-effect'
-import { apiUrl, secureApi } from '../data/requests'
-import { useGlobalContext } from '../context/global'
-import { CleanerI, ServiceI } from '../interface/api'
+import { apiUrl, secureApi } from '../../data/requests'
+import { useGlobalContext } from '../../context/global'
+import { CleanerI, ServiceI } from '../../interface/api'
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native'
-import { MapStackParamsList } from '../interface/navigation'
+import { MapStackParamsList } from '../../interface/navigation'
 import { NativeStackNavigationProp } from '@react-navigation/native-stack'
-import { colors } from '../styles/colors'
-import { stringPrice } from '../constants/money'
-import axios from 'axios'
+import { colors } from '../../styles/colors'
+import { stringPrice } from '../../constants/money'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 
 type cleanerNavProps = NativeStackNavigationProp<MapStackParamsList, 'cleanerInfo'>
@@ -17,7 +15,6 @@ type cleanerNavProps = NativeStackNavigationProp<MapStackParamsList, 'cleanerInf
 const Service = ({
     title,
     price,
-    description
 }: ServiceI) => {
     return (
         <View style={s.service}>
@@ -36,6 +33,10 @@ const CleanerInfo: React.FC = () => {
     const navigation = useNavigation<cleanerNavProps>()
     const { cleanerId } = useRoute<RouteProp<MapStackParamsList, 'cleanerInfo'>>().params
 
+    /**
+     * I'm trying to get the cleaner data from the backend and set the state of the cleaner and
+     * assigned variables.
+    */
     const handleCleaner = async () => {
         try {
             const getCleaner = await secureApi(token)
@@ -67,8 +68,8 @@ const CleanerInfo: React.FC = () => {
             .then(() => {
                 setAssigned(true)
                 setGlobal({ ...global, preferredCleaner: cleanerId })
+                AsyncStorage.setItem('requests', '[]')
             })
-        AsyncStorage.setItem('requests', '[]')
     } 
 
     return (
@@ -91,7 +92,7 @@ const CleanerInfo: React.FC = () => {
             </View>
             <ScrollView >
                 <View style={s.serviceContainer}>
-                    {cleaner.services.map(svs => <Service {...svs} /> )}
+                    {cleaner.services.map(svs => <Service key={svs._id} {...svs} /> )}
                 </View>
             </ScrollView>
         </View>

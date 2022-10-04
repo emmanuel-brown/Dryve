@@ -25,6 +25,10 @@ export const uniqueWithQuantity = <T>(
     return addedProps
 }
 
+export const capFirst = (str: string) => {
+    return str.charAt(0).toUpperCase() + str.slice(1)
+}
+
 //store item in local storage
 export const storeItem = async (
     prop: string,

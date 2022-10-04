@@ -39,6 +39,9 @@ const GlobalContextProvider = (props: GlobalContextProps) => {
     })
 
     //get and set token from device storage
+    /**
+     * If the token is not falsy, store it in global contexts
+     */
     const retreiveToken = async () => {
         try {
             //get token for device storage
@@ -55,9 +58,13 @@ const GlobalContextProvider = (props: GlobalContextProps) => {
         }
     }
 
+    /**
+     * I'm trying to set the global state with the data I get from the api call. 
+     * 
+     * @param {string} token - string
+    */
     const onTokenUpdate = async (token: string) => {
         try {
-            
             if(token) {
                 AsyncStorage.setItem('token', token)
 
@@ -96,9 +103,11 @@ const GlobalContextProvider = (props: GlobalContextProps) => {
         })()
     }, [])
 
+    /* It's checking if the token is not falsy, if it's not, it will call the onTokenUpdate function. */
     useEffect(() => {
         if(global.token) {
-            onTokenUpdate(global.token).finally(() => setGlobal({ ...global, loading: false }))
+            onTokenUpdate(global.token)
+                .finally(() => setGlobal({ ...global, loading: false }))
         }
     }, [ global.token ])
 
@@ -115,6 +124,9 @@ const GlobalContextProvider = (props: GlobalContextProps) => {
 export default GlobalContextProvider
 
 
+/**
+ * This function returns the global context and the setGlobal function.
+ */
 export const useGlobalContext = (): { 
     global: GlobalI, 
     setGlobal: Dispatch<SetStateAction<GlobalI>> 

@@ -1,19 +1,15 @@
 import { useFocusEffect, useNavigation } from '@react-navigation/native'
 import { NativeStackNavigationProp } from '@react-navigation/native-stack'
 import axios from 'axios'
-import { getCurrentPositionAsync, useForegroundPermissions, PermissionStatus } from 'expo-location'
-import { useCallback, useEffect, useState } from 'react'
-import { StyleSheet, Text, Alert } from 'react-native'
+import React, { useCallback, useState } from 'react'
+import { StyleSheet, Text, View, TouchableOpacity } from 'react-native'
 import MapView, { Marker } from 'react-native-maps'
-import useAsyncEffect from 'use-async-effect'
-import { getLocationHandler, getMapPreview } from '../../constants/location'
 import { useGlobalContext } from '../../context/global'
-import { apiUrl, getNearByClns, secureApi } from '../../data/requests'
+import { apiUrl, getApartments, getNearByClns, secureApi } from '../../data/requests'
 import locationHook from '../../hooks/location'
 import driverTracking from '../../hooks/orderHook'
 import pickupsHook from '../../hooks/pickupAddress'
-import preferredCleanerHook from '../../hooks/preferredCleaner'
-import { CleanerI } from '../../interface/api'
+import { AptI, CleanerI } from '../../interface/api'
 import { MapStackParamsList } from '../../interface/navigation'
 import { colors } from '../../styles/colors'
 
@@ -37,6 +33,7 @@ type mapProps = NativeStackNavigationProp<MapStackParamsList, 'map'>
 const Map: React.FC = () => {
     const { global, setGlobal } = useGlobalContext()
     const [ clnMarkers, setClnMarkers ] = useState<CleanerI[]>([])
+    const [ apts, setApts ] = useState<AptI[]>([])
     const [ region, setRegion ] = useState<Region | undefined>()
     const [ loading, setLoading ] = useState<boolean>(true)
     const [ error, setError ] = useState<boolean>(false)
@@ -48,7 +45,7 @@ const Map: React.FC = () => {
         getLocationHandler 
     } = locationHook(global, setGlobal)
 
-    const { location, token } = global
+    const { token } = global
 
     const { driverLoc, driver } = driverTracking(token)
 
@@ -94,8 +91,11 @@ const Map: React.FC = () => {
                     forRegion.longitude,
                     20
                 )
-
+                
+                const aptsData = await getApartments(token)
+                
                 setClnMarkers(cleanersData)
+                setApts(aptsData)
                 setRegion(forRegion)
             } else {
                 // setError(true)
@@ -123,47 +123,59 @@ const Map: React.FC = () => {
         navigation.navigate('cleanerInfo', { cleanerId })
     }
 
+    const onAptPress = (aptId: string) => {
+        setLoading(true)
+        navigation.navigate('apartment', { aptId })
+    }
+
     if(error) return <Text>Unable to access location</Text>
     
     return (
-        <MapView
-            region={ region }
-            style={styles.mapView}
-            showsUserLocation={ true }
-            provider='google'
-            loadingEnabled={ true }
-            showsPointsOfInterest={ false }
-            userInterfaceStyle={ 'dark' }
-        >
-            {clnMarkers && clnMarkers.map(cln => <Marker
-                key={cln._id}
-                pinColor={ cln.preferred ? colors.black : colors.offGold }
-                title={ cln.name }
-                coordinate={{ 
-                    latitude: cln.address.location.coordinates[1], 
-                    longitude: cln.address.location.coordinates[0]
-                }}
-                onPress={() => onCleanerPress(cln._id)}
-                identifier={ cln._id }
-            />)}
+        <>
+            <MapView
+                region={ region }
+                style={styles.mapView}
+                showsUserLocation={ true }
+                provider='google'
+                loadingEnabled={ true }
+                showsPointsOfInterest={ false }
+                userInterfaceStyle={ 'dark' }
+            >
+                {clnMarkers && clnMarkers.map(cln => <Marker
+                    key={cln._id}
+                    pinColor={ cln.preferred ? colors.black : colors.offGold }
+                    title={ cln.name }
+                    coordinate={{ 
+                        latitude: cln.address.location.coordinates[1], 
+                        longitude: cln.address.location.coordinates[0]
+                    }}
+                    onPress={() => onCleanerPress(cln._id)}
+                    identifier={ cln._id }
+                />)}
 
-            {driverLoc && <Marker
-                key={ driver?._id }
-                pinColor='blue'
-                title={`${driver?.firstName} ${driver?.lastName}`}
-                identifier={ driver?._id }
-                coordinate={{
-                    latitude: driverLoc.latitude,
-                    longitude: driverLoc.longitude
-                }}
-            />}
-        </MapView>
+                {apts && apts.map(apt => <Marker
+                    key={apt._id}
+                    pinColor={ 'blue' }
+                    title={ apt.name }
+                    onPress={() => onAptPress(apt._id)}
+                    coordinate={{ 
+                        latitude: apt.address.location.coordinates[1], 
+                        longitude: apt.address.location.coordinates[0]
+                    }}
+                    identifier={ apt._id }
+                />)}
+
+
+            </MapView>
+        </>
     )
 }
 
 const styles = StyleSheet.create({
     mapView: {
-        flex: 1
+        flex: 1,
+        position: 'relative',
+        zIndex: 1
     }
 })
 

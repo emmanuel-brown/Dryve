@@ -1,22 +1,26 @@
-import { View, Text, StyleSheet } from 'react-native'
-import { useGlobalContext } from '../context/global'
+import { StyleSheet } from 'react-native'
 import theme from '../styles/colors'
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
-import CleanerInfo from './CleanerInfo';
 import { NavigationContainer } from '@react-navigation/native'
 import MapNavigation from '../components/navigation/navMap'
-import { MainButtonParams } from '../interface/navigation';
-import OrderNavigation from '../components/navigation/navOrder';
+import { MainButtonParams } from '../interface/navigation'
+import CleanerList from './cleaners/CleanerList'
+import AccountNavigation from '../components/navigation/navAccount'
 
 const Tab = createBottomTabNavigator<MainButtonParams>()
 
-const Home: React.FC<{token: string}> = ({ 
-    token 
-}:{token: string}) => {
-
+const Home = () => {
     return (
         <NavigationContainer>
             <Tab.Navigator initialRouteName='mapView'>
+                <Tab.Screen 
+                    name='cleaners'
+                    component={ CleanerList }
+                    options={{
+                        tabBarLabel: 'Cleaners',
+                        headerShown: false
+                    }} 
+                />
                 <Tab.Screen 
                     name="mapView" 
                     component={ MapNavigation }
@@ -26,12 +30,12 @@ const Home: React.FC<{token: string}> = ({
                     }}
                 />
                 <Tab.Screen 
-                    name="order" 
-                    component={ OrderNavigation }
+                    name="account" 
+                    component={ AccountNavigation }
                     options={{
-                        tabBarLabel: 'Order',
+                        tabBarLabel: 'Account',
                         headerShown: false
-                    }} 
+                    }}
                 />
             </Tab.Navigator>
         </NavigationContainer>

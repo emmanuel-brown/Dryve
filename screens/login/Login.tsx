@@ -10,8 +10,6 @@ import { RootStackParamList } from '../../interface/navigation';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { FormBttn, TI } from '../../components/form';
 import { apiUrl } from '../../constants/values';
-import useAsyncEffect from 'use-async-effect';
-import isEmail from 'validator/lib/isEmail';
 
 interface ValuesI {
   email: string,
@@ -70,7 +68,7 @@ const Login = () => {
       try {
         if(!validate()) return
 
-        const receivedToken = await axios.post<string>(`${ apiUrl }/client/login`, {
+        const receivedToken = await axios.post<string>(`${ apiUrl }/driver/login`, {
           username: values.email.trim(),
           password: values.password
         }).then(res => res.data)
@@ -134,48 +132,48 @@ const Login = () => {
 }
 
 const styles = StyleSheet.create({
-    container: {
-      paddingTop: '50%',
-      flex: 3,
-      backgroundColor: theme.background,
-      alignItems: 'center',
-      // justifyContent: 'space-around',
-      white: 'white',
-    },
-    headerView: {
-      height: 100
-    },
-    header: {
-      color: theme.header,
-      fontSize: 24,
-    },
-    form: {
-      // flex: 2,
-      width: '80%',
-      justifyContent: 'space-around',
-      textAlign: 'left',
-      minHeight: 90,
-    },
-    signUpBttn: {
-      backgroundColor: theme.buttonBackground,
-      width: 180,
-      height: 180,
-      borderRadius: 100,
-      justifyContent: 'center',
-      marginTop: 20,
-    },
-    signUpBttnTxt: {
-      color: theme.buttonText,
-      fontSize: 20,
-      // textAlign: 'center',
-      alignSelf: 'center',
-      marginBottom: 10,
-    },
-    invalidText: {
-      color: theme.errorText,
-      marginTop: 10,
-    }
-  });
+  container: {
+    paddingTop: '50%',
+    flex: 3,
+    backgroundColor: theme.background,
+    alignItems: 'center',
+    // justifyContent: 'space-around',
+    white: 'white',
+  },
+  headerView: {
+    height: 100
+  },
+  header: {
+    color: theme.header,
+    fontSize: 24,
+  },
+  form: {
+    // flex: 2,
+    width: '80%',
+    justifyContent: 'space-around',
+    textAlign: 'left',
+    minHeight: 90,
+  },
+  signUpBttn: {
+    backgroundColor: theme.buttonBackground,
+    width: 180,
+    height: 180,
+    borderRadius: 100,
+    justifyContent: 'center',
+    marginTop: 20,
+  },
+  signUpBttnTxt: {
+    color: theme.buttonText,
+    fontSize: 20,
+    // textAlign: 'center',
+    alignSelf: 'center',
+    marginBottom: 10,
+  },
+  invalidText: {
+    color: theme.errorText,
+    marginTop: 10,
+  }
+})
 
 export default Login
   

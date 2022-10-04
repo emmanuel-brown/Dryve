@@ -6,36 +6,30 @@ import { AddressI } from '../interface/api'
 const pickupsHook = (token: string) => {
     const [ pickups, setPickups ] = useState<AddressI[]>([])
     const [ pickupAddress, setPickupAddress ] = useState<AddressI>()
-    const [ render, reRender ] = useState<1>(1)
-
 
     const getPickups = async () => {
         const pickupsData = await secureApi(token)
             .get<AddressI[]>(`${ apiUrl }/client/retreive/pickups`)
             .then(res => res.data)
             .catch((e) => {
+                console.log('pickupsData failed', e)
                 return []
             })
-
+        
+        console.log('pickupsData: ', pickupsData)
         setPickups(pickupsData)
-        //find address with truthy pickup address
+        //find address with truthy default
+        const dflt = pickupsData.filter(addy => addy.default)
+
         setPickupAddress(
-            pickupsData.filter(addy => addy.default)[0]
+            dflt[0] ? dflt[0] : pickupsData[0]
         )
     }
-
-    // useEffect(() => {
-    //     reRender
-    // }, [])
-
-    useEffect(() => {
-        getPickups()
-    }, [ render ])
 
     return {
         pickups,
         pickupAddress,
-        reRender
+        update: () => getPickups()
     }
 }
 

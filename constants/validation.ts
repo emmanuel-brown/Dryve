@@ -9,6 +9,11 @@ type Values = {
 
 export const numOnly = (val: string) => val === undefined ? "" :  val.replace(/[^0-9.]/g, "")
 
+/**
+ * It takes in an object of values and returns an object of errors.
+ * @param {Values} values - Values
+ * @returns The return type is T.
+*/
 export default function validation<T>(values: Values) {
     const e = {...values}
 

@@ -129,3 +129,61 @@ export interface OrderI {
     serviceCost?: number
     orderTotal?: number
 }
+
+export interface UserI {
+    _id?: any
+    firstName: string
+    lastName: string
+    email: string
+    password: string
+    phoneNumber: string
+    dob: number
+    address: string
+    pickUpAddresses: string[]
+    cards: string[]
+    created: number
+    refreshToken?: string
+    orders: string[]
+    preferredCleaner?: string 
+    pickupAddress?: string
+    preferredCardId: string
+}
+
+export interface DriverI {
+    _id: string
+    user: Pick<UserI, 
+        'firstName' |
+        'lastName' |
+        'dob' |
+        'email' |
+        'phoneNumber'
+    >
+    lastFour?: number
+    passedBackgroundCheck: boolean
+    bankRoutingNumber?: string
+    bankAccountNumber?: string
+    orders: string[]
+    totalPayout?: number //in cents
+    activeOrders: string[]
+    location: PointI
+}
+
+export interface AptI {
+    _id: string
+    name: string,
+    address: AddressI
+    email: string
+    buildings: {
+        [key: string]: {
+            [key: string]: {
+                clientId: string
+                isActive: boolean
+            }
+        }
+    }
+    createdBy: {
+        userType: 'manager'
+        userTypeId: string
+    },
+    paidFor: boolean
+}

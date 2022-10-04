@@ -7,24 +7,12 @@ import { CleanerI, ServiceI } from "../interface/api"
 import RequestsHook from './requests'
 
 
-const preferredCleanerHook = (token: string) => {
+const preferredCleanerHook = (theToken: string) => {
     const [ cleaner, setCleaner ] = useState<CleanerI>()
     const { global, setGlobal } = useGlobalContext()
     const [ requests, setRequests ] = useState<ServiceI[]>([])
 
-    const handlePCleaner = async () => {
-        //get user's preferred cleaner data
-        return await secureApi(token).get<CleanerI>(`${apiUrl}/client/retreive/preferredCleaner`)
-            .then(res => {
-                console.log('cleaner: ', res.data)
-                setGlobal({ ...global, preferredCleaner: res.data._id })
-                return res.data
-            })
-            .catch(e => {
-                console.log('failed: ', 'get preferredCleaner in global.tsx')
-                return undefined
-            })
-    }
+    
 
     const intializeRequests = async (preferredCleaner: CleanerI) => {
         const storedRequesets = await AsyncStorage.getItem('requests')
@@ -49,23 +37,20 @@ const preferredCleanerHook = (token: string) => {
         }
     }
 
-    useEffect(() => {
-        (async () =>{
-            const cleanerData = await handlePCleaner()
-            if(cleanerData) {
-                await intializeRequests(cleanerData)
-            }
-                
-            if(cleanerData) {
-                setCleaner(cleanerData)
-            }
-        })()
-
-        return () => {
-            if(!requests) return
-            AsyncStorage.setItem('requests', JSON.stringify(requests))
-        }
-    }, [])
+    const handlePCleaner = async (token: string) => {
+        //get user's preferred cleaner data
+        return await secureApi(token).get<CleanerI>(`${apiUrl}/client/retreive/preferredCleaner`)
+            .then(res => {
+                setGlobal({ ...global, preferredCleaner: res.data._id })
+                intializeRequests(res.data)
+                setCleaner(res.data)
+                return res.data
+            })
+            .catch(e => {
+                console.log('failed: ', 'put preferredCleaner in global.tsx')
+                return undefined
+            })
+    }
 
     useEffect(() => {
         if(requests.length) {
@@ -76,7 +61,8 @@ const preferredCleanerHook = (token: string) => {
     return {
         preferredCleaner: cleaner,
         requests, 
-        setRequests
+        setRequests,
+        update: (token: string) => handlePCleaner(token)
     }
 }
 

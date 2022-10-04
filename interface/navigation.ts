@@ -10,10 +10,15 @@ export type RootStackParamList = {
 
 export type MainButtonParams = {
     mapView: undefined
-    order: undefined
+    orders: undefined
+    cleaners: undefined
+    account: undefined
 }
 
 export type MapStackParamsList = {
+    apartment: {
+        aptId: string
+    }
     map: undefined
     cleanerInfo: {
         cleanerId: string
@@ -21,10 +26,10 @@ export type MapStackParamsList = {
 }
 
 export type OrderStackParams = {
-    selectServices: {
-        requests: ServiceI[]
-        setRequests: React.Dispatch<React.SetStateAction<ServiceI[] | []>>
-    }
-    pricing: undefined
+    ordersList: undefined
+}
+
+export type AccountStackParams = {
+    home: undefined
 }
 

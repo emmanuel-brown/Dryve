@@ -1,11 +1,7 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack"
 import { MapStackParamsList, OrderStackParams } from "../../interface/navigation"
 import Map from '../../components/map/map'
-import CleanerInfo from "../../screens/CleanerInfo"
-import { useEffect, useState } from "react"
-import { ServiceI } from "../../interface/api"
-import selectServices from "../../screens/order/SelectServices"
-import Pricing from "../../screens/order/Pricing"
+import CleanerInfo from "../../screens/cleaners/CleanerInfo"
 
 
 const Stack = createNativeStackNavigator<OrderStackParams>()
@@ -21,14 +17,10 @@ const OrderNavigation = () => {
         requests already exists
     */
     return (
-        <Stack.Navigator initialRouteName={ 'selectServices' } id='order'>
+        <Stack.Navigator initialRouteName='orderList' id='order'>
             <Stack.Screen
-                name='selectServices'
-                component={ selectServices }
-            />
-            <Stack.Screen
-                name='pricing'
-                component={ Pricing }
+                name='ordersList'
+                component={ <></> }
             />
         </Stack.Navigator>
     )
