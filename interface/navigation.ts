@@ -1,4 +1,4 @@
-import { ServiceI } from "./api"
+import { ServiceI, UnitI } from "./api"
 import { CleanerInfoI } from "./screens"
 
 export type RootStackParamList = {
@@ -18,6 +18,12 @@ export type MainButtonParams = {
 export type MapStackParamsList = {
     apartment: {
         aptId: string
+    }
+    aptBld: {
+        building: string
+        units: {
+            [key: string]: UnitI
+        }
     }
     map: undefined
     cleanerInfo: {

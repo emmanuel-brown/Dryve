@@ -1,10 +1,20 @@
-import { Text, View, StyleSheet, ScrollView } from 'react-native'
+import {
+    Text, 
+    View, 
+    StyleSheet, 
+    ScrollView,
+    TouchableOpacity 
+} from 'react-native'
 import { AptI } from '../../interface/api'
 import { colors } from '../../styles/colors'
 
 const AptList: React.FC<{
-    buildings: AptI['buildings']
-}> = ({buildings}: Pick<AptI, 'buildings'>) => {
+    buildings: AptI['buildings'],
+    buildingPress: Function
+}> = ({buildings, buildingPress}: {
+    buildings: AptI['buildings'],
+    buildingPress: Function
+}) => {
 
     const blds = Object.entries(buildings)
 
@@ -12,9 +22,11 @@ const AptList: React.FC<{
         <ScrollView>
             {
                 blds.map(bld => (
-                    <View style={ s.apt } key={bld[0]}>
-                        <Text style={ s.aptHead }>{ bld[0] }</Text>
-                    </View>
+                    <TouchableOpacity onPress={() => buildingPress(bld[0])}>
+                        <View style={ s.apt } key={bld[0]}>
+                            <Text style={ s.aptHead }>{ bld[0] }</Text>
+                        </View>
+                    </TouchableOpacity>
                 ))
             }
             

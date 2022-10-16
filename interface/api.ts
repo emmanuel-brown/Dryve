@@ -168,18 +168,26 @@ export interface DriverI {
     location: PointI
 }
 
+export interface UnitI {
+    client?: string
+    isActive?: boolean
+    address: string
+}
+
+export interface AptBuildingI {
+    //*building addresses cannot use street_address_line_2
+    address: string
+    units: {
+        [unit: string]: UnitI
+    }
+}
+
 export interface AptI {
-    _id: string
     name: string,
     address: AddressI
     email: string
     buildings: {
-        [key: string]: {
-            [key: string]: {
-                clientId: string
-                isActive: boolean
-            }
-        }
+        [building: string]: AptBuildingI
     }
     createdBy: {
         userType: 'manager'

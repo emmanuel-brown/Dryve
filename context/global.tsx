@@ -1,9 +1,10 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import { LocationObject } from 'expo-location';
 import { add } from 'lodash';
 import React, { useState, createContext, Dispatch, SetStateAction, useEffect } from 'react';
 import { apiUrl, secureApi } from '../data/requests';
+import ErrorHandler from '../hooks/errorHandler';
 import { AddressI } from '../interface/api';
 
 
@@ -37,6 +38,8 @@ const GlobalContextProvider = (props: GlobalContextProps) => {
         preferredCleaner: '',
         loading: true
     })
+
+    const [ handleAxiosError ] = ErrorHandler()
 
     //get and set token from device storage
     /**
@@ -74,12 +77,10 @@ const GlobalContextProvider = (props: GlobalContextProps) => {
                     .then(res => {
                         return res.data
                     })
-                    .catch((e) => {
-                        console.log('failed: ', 'get pickups in global.tsx')
-                    })
 
                 if(getPickup) {
-                    setGlobal({...global, 
+                    setGlobal({
+                        ...global, 
                         location: {
                             latitude: getPickup.location.coordinates[0],
                             longitude: getPickup.location.coordinates[1]
@@ -88,7 +89,8 @@ const GlobalContextProvider = (props: GlobalContextProps) => {
                     })
                 }
             }
-        } catch {
+        } catch(e: any) {
+            await handleAxiosError(e)
             console.log('unable to store token')
         }
     }

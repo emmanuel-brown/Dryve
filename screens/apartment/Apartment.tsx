@@ -1,6 +1,6 @@
 import { useFocusEffect } from '@react-navigation/native'
 import { useState, useCallback } from 'react'
-import { Text, View, StyleSheet } from 'react-native'
+import { Text, View, StyleSheet, TouchableOpacity } from 'react-native'
 import { useGlobalContext } from '../../context/global'
 import { getApartment } from '../../data/requests'
 import { AptI } from '../../interface/api'
@@ -8,6 +8,9 @@ import { RouteProp, useNavigation, useRoute } from '@react-navigation/native'
 import { MapStackParamsList } from '../../interface/navigation'
 import { colors } from '../../styles/colors'
 import AptList from '../../components/apartment/AptList'
+import { NativeStackNavigationProp } from '@react-navigation/native-stack'
+
+type mapProps = NativeStackNavigationProp<MapStackParamsList, 'apartment'>
 
 const AptScreen: React.FC = () => {
     const [ apt, setApt ] = useState<AptI>()
@@ -18,6 +21,8 @@ const AptScreen: React.FC = () => {
 
     const route = useRoute<RouteProp<MapStackParamsList, 'apartment'>>()
     const { aptId } = route.params
+
+    const navigation = useNavigation<mapProps>()
 
     useFocusEffect(
         useCallback(() => {
@@ -48,6 +53,13 @@ const AptScreen: React.FC = () => {
             </View>
         )
     }
+
+    const handleBuildingPress = (bld: string) => {
+        navigation.navigate('aptBld', {
+            building: bld,
+            units: apt.buildings[bld].units
+        })
+    }
     
     return(
         <View style={ s.container }>
@@ -55,7 +67,10 @@ const AptScreen: React.FC = () => {
                 <Text style={ s.name }>{ apt.name }</Text>
                 <Text style={ s.address }>{ apt.address.formatted }</Text>
             </View>
-            <AptList buildings={ apt.buildings }/>
+            <AptList 
+                buildings={ apt.buildings }
+                buildingPress={ handleBuildingPress }
+            />
         </View>
     )
 }
