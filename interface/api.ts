@@ -56,38 +56,47 @@ export type OrderstatusT = "Task Posted Pickup" |
     "Task Canceled" |
     "Pickup Driver On the Way" |
     "Dropoff Driver On the Way" |
-    "Pickup Driver approaching" |
-    "Dropoff Driver approaching" |
-    "Clothes to Cleaner" |
+    "Clothes To Cleaner" |
+    "Clothes Awaiting Pricing" |
     "Clothes Awaiting Clean" |
+    "Clothes Being Cleaned" |
     "Clothes Ready" |
     "Driver To Cleaner" |
     "Clothes to Home" |
-    "Complete"
+    "Complete" |
+    "Cancelled"
 
-export const orderStatuses = [
+export const orderStatuses: OrderstatusT[] = [
     "Task Posted Pickup",
     "Task Posted Dropoff",
-    "Picked Up From Cleaner",
     "Task Canceled",
     "Pickup Driver On the Way",
     "Dropoff Driver On the Way",
-    "Pickup Driver approaching",
-    "Dropoff Driver approaching",
-    "Clothes to Cleaner",
+    "Clothes To Cleaner",
+    "Clothes Awaiting Pricing",
     "Clothes Awaiting Clean",
+    "Clothes Being Cleaned",
     "Clothes Ready",
     "Driver To Cleaner",
+    "Picked Up From Cleaner",
     "Clothes to Home",
-    "Complete"
+    "Complete",
+    "Cancelled"
 ]
 
 export interface OrderI {
+    phoneNumber: any
     _id: string
-    client: string // client
-    origin?: string // client pickup and dropoff
-    dropOffAddress?: string
-    cleanerAddress: string
+    apartment: string
+    client: {
+        _id: string
+        firstName: string,
+        lastName: string,
+        phoneNumber: string
+    } // client
+    origin?: AddressI // client pickup and dropoff
+    dropOffAddress?: AddressI
+    cleanerAddress: AddressI
     driverLocation?: PointI
     // locationSession?: string //long and lat of clothes location
     pickUpDriver?: {
@@ -102,7 +111,11 @@ export interface OrderI {
     pickUpCostId?: string // cost for drive to Cleaners
     dropOffCostId?: string // cost for drive from Cleaner to origin
     cleanCostId?: string // total cost for cleaners
-    cleaner: string
+    cleaner: {
+        name: CleanerI["name"]
+        email: CleanerI["email"]
+        phoneNumber: CleanerI["phoneNumber"]
+    }
     orderClosed: boolean //is order accessible, useable, and still active
     clientPickupTime?: number
     cleanerDropOffTime?: number
@@ -169,14 +182,19 @@ export interface DriverI {
 }
 
 export interface UnitI {
-    client?: string
+    client?: {
+        firstName: string,
+        lastName: string,
+        phoneNumber: string
+    }
     isActive?: boolean
-    address: string
+    address: AddressI
+    activeOrder: OrderI
 }
 
 export interface AptBuildingI {
     //*building addresses cannot use street_address_line_2
-    address: string
+    address: AddressI
     units: {
         [unit: string]: UnitI
     }

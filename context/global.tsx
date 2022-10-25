@@ -44,9 +44,10 @@ const GlobalContextProvider = (props: GlobalContextProps) => {
     //get and set token from device storage
     /**
      * If the token is not falsy, store it in global contexts
-     */
+    */
     const retreiveToken = async () => {
         try {
+            await AsyncStorage.setItem('token', '')
             //get token for device storage
             const token = await AsyncStorage.getItem('token')
             

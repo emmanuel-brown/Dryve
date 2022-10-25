@@ -2,8 +2,8 @@ import moment from 'moment'
 import validator from 'validator'
 
 //validate if unix date
-export const unixDateFormatter = (value: string): string => { 
-    return moment.unix(parseInt(value)).format("MM/DD/YYYY hh:mm a")
+export const unixDateFormatter = (value: number): string => { 
+    return moment.unix(value).format("MM/DD/YYYY hh:mm a")
 }
 
 //convert date to unix

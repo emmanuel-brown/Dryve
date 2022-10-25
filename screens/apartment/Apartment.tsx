@@ -56,8 +56,9 @@ const AptScreen: React.FC = () => {
 
     const handleBuildingPress = (bld: string) => {
         navigation.navigate('aptBld', {
-            building: bld,
-            units: apt.buildings[bld].units
+            bldId: bld,
+            aptId,
+            apt
         })
     }
     
@@ -97,7 +98,8 @@ const s = StyleSheet.create({
     },
     name: {
         color: colors.orange,
-        fontSize: 25
+        fontSize: 25,
+        textAlign: 'center'
     },
     optsList: {
         width: '100%'

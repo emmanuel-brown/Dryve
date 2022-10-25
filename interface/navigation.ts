@@ -1,4 +1,4 @@
-import { ServiceI, UnitI } from "./api"
+import { AptI, ServiceI, UnitI } from "./api"
 import { CleanerInfoI } from "./screens"
 
 export type RootStackParamList = {
@@ -20,10 +20,15 @@ export type MapStackParamsList = {
         aptId: string
     }
     aptBld: {
-        building: string
-        units: {
-            [key: string]: UnitI
-        }
+        bldId: string
+        aptId: string
+        apt: AptI
+    }
+    aptUnit: {
+        aptId: string
+        bldId: string
+        apt: AptI
+        unitId: string
     }
     map: undefined
     cleanerInfo: {
