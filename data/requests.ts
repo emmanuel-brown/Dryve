@@ -1,5 +1,5 @@
 import axios from 'axios'
-import { AddressI, AptBuildingI, AptI, CleanerI, OrderI, UnitI } from '../interface/api'
+import { AddressI, AptBuildingI, AptI, CleanerI, DriverI, OrderI, UnitI } from '../interface/api'
 
 export const apiUrl = process.env.React_APP_APIURL ? process.env.React_APP_APIURL : "https://guarded-temple-56367.herokuapp.com"
 
@@ -16,6 +16,33 @@ export const secureApi = (providedToken?: string) => {
             "Authorization": `Bearer ${ providedToken ? providedToken : 'null' }`,
         }
     })
+}
+
+export const getDriverData = async (token: string) => {
+    try {
+        const driver = await secureApi(token)
+            .get<DriverI>('/driver')
+            .then(res => res.data)
+
+        return driver
+    } catch {
+        return undefined
+    }
+}
+
+export const getOrderData = async (
+    token: string,
+    orderId: OrderI['_id']
+) => {
+    try {
+        const order = await secureApi(token)
+            .get<OrderI>(`/driver/order/${ orderId }`)
+            .then(res => res.data)
+
+        return order
+    } catch {
+        return undefined
+    }
 }
 
 /**
@@ -49,6 +76,114 @@ export const getNearByClns = async (
             return clns
     } catch(e) {
         return []
+    }
+}
+
+export const getDriverActiveOrders = async (
+    token: string
+) => {
+    try {
+        const dAO = await secureApi(token)
+            .get<DriverI['activeOrders']>('/driver/order/active_orders')
+            .then(res => res.data)
+
+        return dAO
+    } catch {
+        return undefined
+    }
+}
+
+export const getCleanerActiveOrders = async (
+    token: string,
+    clnId: string
+) => {
+    try {
+        const cAO = await secureApi(token)
+            .get<CleanerI['activeOrders']>(`/driver/cleaner/${ clnId }/active_orders`)
+            .then(res => res.data)
+
+        return cAO
+    } catch {
+        return undefined
+    }
+}
+
+export const getCleanerPickups = async (
+    token: string,
+    clnId: string
+) => {
+    try {
+        const cAO = await secureApi(token)
+            .get<CleanerI['activeOrders']>(`/driver/cleaner/${ clnId }/pickups`)
+            .then(res => res.data)
+
+        return cAO
+    } catch {
+        return undefined
+    }
+}
+
+export const pickUpOrders = async (
+    token: string,
+    clnId: string,
+    orderIds: string[]
+) => {
+    try {
+        const updatedOrders = await secureApi(token)
+            .post<OrderI[]>(`/driver/order/cleaner_pickups/${ clnId }`, {
+                orderIds
+            })
+            .then(res => res.data)
+
+        return updatedOrders
+    } catch {
+        return undefined
+    }
+}
+
+/**
+ * Get Cleaner Data
+ * @param {string} token - string - the token that is used to authenticate the user
+ * @param clnId - CleanerI['_id']
+ * @returns An object with the following properties:
+ */
+export const getCleaner = async (
+    token: string,
+    clnId: CleanerI['_id']
+) => {
+    try {
+        const cln = await secureApi(token)
+            .get<CleanerI>(`/driver/cleaner/${ clnId }`)
+            .then(res => res.data)
+
+        return cln
+    } catch(e) {
+        return undefined
+    }
+}
+
+/**
+ * Request that transfers orders to specified cleaners
+ * @param {string} token - string,
+ * @param clnId - CleanerI['_id']
+ * @param {OrderI['_id'][]} orderIds - OrderI['_id'][]
+ * @returns An array of orders.
+ */
+export const cleanerDropOff = async (
+    token: string,
+    clnId: CleanerI['_id'],
+    orderIds: OrderI['_id'][]
+) => {
+    try {
+        const orders = await secureApi(token)
+            .post<OrderI[]>(`/driver/cleaner/${clnId}/drop_off`, {
+                orderIds
+            })
+            .then(res => res.data)
+
+        return orders
+    } catch {
+        return undefined
     }
 }
 
@@ -174,6 +309,21 @@ export const createOrder = async (
     try {
         const order = await secureApi(token)
             .post<OrderI>(`/driver/order/create/${aptId}/${bldId}/${unitId}`)
+            .then(res => res.data)
+
+        return order
+    } catch {
+        return null
+    }
+}
+
+export const clientDropoff = async (
+    token: string,
+    orderId: OrderI['_id']
+) => {
+    try {
+        const order = await secureApi(token)
+            .post<OrderI>(`/driver/order/${ orderId }/client_dropoff`)
             .then(res => res.data)
 
         return order

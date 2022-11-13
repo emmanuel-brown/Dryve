@@ -1,22 +1,31 @@
 import React, { useCallback, useState } from 'react'
-import { StyleSheet, View, Text, ScrollView } from 'react-native'
-import { useFocusEffect } from '@react-navigation/native'
+import { StyleSheet, View, Text, ScrollView, TouchableHighlight } from 'react-native'
+import { RouteProp, useFocusEffect, useNavigation, useRoute } from '@react-navigation/native'
 import { CleanerI } from '../../interface/api'
 import { useGlobalContext } from '../../context/global'
 import { getNearByClns } from '../../data/requests'
 import pickupsHook from '../../hooks/pickupAddress'
 import { colors } from '../../styles/colors'
+import { NativeStackNavigationProp } from '@react-navigation/native-stack'
+import { CleanerStackParams, MapStackParamsList } from '../../interface/navigation'
 
-const Cleaner: React.FC<CleanerI> = ({
-    name,
-    phoneNumber,
-    preferred
-}: CleanerI) => {
+type cleanerNavProps = NativeStackNavigationProp<CleanerStackParams, 'cleanerList'>
+
+interface CleanerCardI {
+    cln: CleanerI
+    onPress: Function
+}
+const CleanerCard: React.FC<CleanerCardI> = ({
+    cln,
+    onPress
+}: CleanerCardI) => {
     return (
-        <View style={preferred ? s.cleaner : s.preferredCleaner}>
-            <Text style={s.cleanerHead}>{ name }</Text>
-            <Text style={s.cleanerHead}>{ phoneNumber }</Text>
-        </View>
+        <TouchableHighlight onPress={() => onPress(cln._id)}>
+            <View style={s.cleaner}>
+                <Text style={s.cleanerHead}>{ cln.name }</Text>
+                <Text style={s.cleanerHead}>{ cln.phoneNumber }</Text>
+            </View>
+        </TouchableHighlight>
     )
 }
 
@@ -24,7 +33,8 @@ const CleanerList = () => {
     const [ loading, setLoading ] = useState<boolean>(true)
     const { global } = useGlobalContext()
     const [ cleaners, setCleaners ] = useState<CleanerI[]>([])
-    const { pickupAddress, update } = pickupsHook(global.token)
+
+    const nav = useNavigation<cleanerNavProps>()      
 
     const initializeCleaners = async () => {
         try {
@@ -46,19 +56,34 @@ const CleanerList = () => {
     useFocusEffect(
         useCallback(() => {
                 setLoading(true)
-                update().then(async () => {
-                    await initializeCleaners()
-                        .finally(() => setLoading(false))
-                }) 
+                initializeCleaners()
+                    .finally(() => setLoading(false))
         }, [])
     )
+
+    if(loading) {
+        return (
+            <View style={s.mainContainer}>
+                <Text style={s.mainHeadTxt}>Loading...</Text>
+            </View>
+        )
+    }
+
+    const cleanerPressed = (clnId: string) => {
+        nav.navigate('cleaner', { cleanerId: clnId })
+    }
 
     return (
         <View style={s.mainContainer}>
             <Text style={s.mainHeadTxt}>Cleaners Nearby</Text>
             <View style={s.listContainer}>
                 <ScrollView>
-                    { cleaners.map(cln => <Cleaner key={cln._id} {...cln} />) }
+                    { cleaners.map(cln => <CleanerCard 
+                        key={cln._id} 
+                        cln={cln} 
+                        onPress={cleanerPressed} 
+                        />                        
+                    )}
                 </ScrollView>
             </View>
         </View>

@@ -10,10 +10,15 @@ const Stack = createNativeStackNavigator<AccountStackParams>()
 const AccountNavigation = () => {
 
     return(
-        <Stack.Navigator initialRouteName='home'>
+        <Stack.Navigator 
+            initialRouteName='home'
+        >
             <Stack.Screen
                 name='home'
                 component={ Account }
+                options={{
+                    headerShown: false
+                }}
             />
         </Stack.Navigator>
     )

@@ -143,7 +143,7 @@ const Map: React.FC = () => {
             >
                 {clnMarkers && clnMarkers.map(cln => <Marker
                     key={cln._id}
-                    pinColor={ cln.preferred ? colors.black : colors.offGold }
+                    pinColor={ colors.black  }
                     title={ cln.name }
                     coordinate={{ 
                         latitude: cln.address.location.coordinates[1], 
@@ -151,6 +151,7 @@ const Map: React.FC = () => {
                     }}
                     onPress={() => onCleanerPress(cln._id)}
                     identifier={ cln._id }
+                    image={ require('../../assets/images/cleaner_icon.png') }
                 />)}
 
                 {apts && apts.map(apt => <Marker
@@ -163,6 +164,7 @@ const Map: React.FC = () => {
                         longitude: apt.address.location.coordinates[0]
                     }}
                     identifier={ apt._id }
+                    image={ require('../../assets/images/apartment_icon.png') }
                 />)}
 
 

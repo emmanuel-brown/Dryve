@@ -5,6 +5,10 @@ import CleanerInfo from "../../screens/cleaners/CleanerInfo"
 import AptScreen from "../../screens/apartment/Apartment"
 import BuildingInfoScreen from "../../screens/apartment/Building"
 import Unit from "../../screens/apartment/unit"
+import CleanerChoice from "../../screens/cleaners/CleanerDropOff"
+import CleanerDropOff from "../../screens/cleaners/CleanerDropOff"
+import CleanerOrders from "../../screens/cleaners/CleanerOrders"
+import { colors } from "../../styles/colors"
 
 
 const Stack = createNativeStackNavigator<MapStackParamsList>()
@@ -12,10 +16,20 @@ const Stack = createNativeStackNavigator<MapStackParamsList>()
 const MapNavigation = () => {
 
     return(
-        <Stack.Navigator initialRouteName='map'>
+        <Stack.Navigator 
+            initialRouteName='map'
+            screenOptions={{
+                headerStyle: {
+                    backgroundColor: colors.darkGrey,
+                },
+            }}
+        >
             <Stack.Screen
                 name='map'
                 component={ Map }
+                options={{
+                    headerShown: false
+                }}
             />
             <Stack.Screen 
                 name='cleanerInfo'
@@ -43,6 +57,20 @@ const MapNavigation = () => {
                 component={ Unit }
                 options={{
                     title: 'Unit'
+                }}
+            />
+            <Stack.Screen 
+                name='CleanerDropOff'
+                component={ CleanerDropOff }
+                options={{
+                    title: 'Cleaner Drop Off'
+                }}
+            />
+            <Stack.Screen 
+                name='CleanerOrders'
+                component={ CleanerOrders }
+                options={{
+                    title: 'Cleaner Orders'
                 }}
             />
         </Stack.Navigator>

@@ -1,32 +1,18 @@
 import { useState, useEffect } from 'react'
 import { View, Text, Linking, StyleSheet, Touchable, TouchableOpacity, ScrollView } from 'react-native'
-import { apiUrl, secureApi } from '../../data/requests'
+import Clipboard from '@react-native-clipboard/clipboard'
+import { apiUrl, getCleaner, secureApi } from '../../data/requests'
 import { useGlobalContext } from '../../context/global'
 import { CleanerI, ServiceI } from '../../interface/api'
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native'
 import { MapStackParamsList } from '../../interface/navigation'
 import { NativeStackNavigationProp } from '@react-navigation/native-stack'
 import { colors } from '../../styles/colors'
-import { stringPrice } from '../../constants/money'
-import AsyncStorage from '@react-native-async-storage/async-storage'
 
 type cleanerNavProps = NativeStackNavigationProp<MapStackParamsList, 'cleanerInfo'>
 
-const Service = ({
-    title,
-    price,
-}: ServiceI) => {
-    return (
-        <View style={s.service}>
-            <Text style={s.servHead}>{ title }</Text>
-            <Text style={s.servPrice}>{ stringPrice(price) }</Text>
-        </View>
-    )
-}
-
 const CleanerInfo: React.FC = () => {
     const [ cleaner, setCleaner ] = useState<CleanerI>()
-    const [ assigned, setAssigned ] = useState<boolean>()
     const { global, setGlobal } = useGlobalContext()
     const token = global.token
 
@@ -39,12 +25,10 @@ const CleanerInfo: React.FC = () => {
     */
     const handleCleaner = async () => {
         try {
-            const getCleaner = await secureApi(token)
-                .get<CleanerI>(`/client/cleaner/${ cleanerId }`)
-                .then(res => res.data)
-
-            setCleaner(getCleaner)
-            if(getCleaner.preferred) setAssigned(true)
+            const cln = await getCleaner(token, cleanerId)
+            if(cln) {
+                setCleaner(cln)
+            }
         } catch(e) {
             //redirect
             console.log(e)
@@ -63,14 +47,7 @@ const CleanerInfo: React.FC = () => {
         )
     }
 
-    const setPreferredCleaner = async () => {
-        await secureApi(token).put(`${apiUrl}/client/preferred_cleaner/${cleanerId}`)
-            .then(() => {
-                setAssigned(true)
-                setGlobal({ ...global, preferredCleaner: cleanerId })
-                AsyncStorage.setItem('requests', '[]')
-            })
-    } 
+    const activeOrder = cleaner.activeOrders
 
     return (
         <View style={s.container}>
@@ -79,22 +56,34 @@ const CleanerInfo: React.FC = () => {
                 <TouchableOpacity onPress={() => Linking.openURL(`tel:${ cleaner.phoneNumber }`)}>
                     <Text style={s.head}>{ cleaner.phoneNumber }</Text>
                 </TouchableOpacity>
-
-                <TouchableOpacity onPress={() => !cleaner.preferred && setPreferredCleaner()}>
-                    <View style={s.assignBttn}>
-                        <Text style={s.assignBttnTxt}>{
-                            assigned ? 'Assigned Cleaner'
-                            : 'Assign Cleaner'
-                        }</Text>
-                    </View>
+                <TouchableOpacity onPress={() => Clipboard.setString(cleaner.address.formatted)}>
+                    <Text style={s.head}>{ cleaner.address.formatted }</Text>
                 </TouchableOpacity>
-
             </View>
-            <ScrollView >
-                <View style={s.serviceContainer}>
-                    {cleaner.services.map(svs => <Service key={svs._id} {...svs} /> )}
+            <TouchableOpacity onPress={() => navigation.navigate(
+                'CleanerDropOff', {
+                    cleanerId,
+                    clnName: cleaner.name
+                })
+            }>
+                <View style={s.choiceCtn}>
+                    <Text style={s.choiceTxt}>
+                        Drop Off
+                    </Text>
                 </View>
-            </ScrollView>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => navigation.navigate(
+                'CleanerOrders', {
+                    cleanerId,
+                    clnName: cleaner.name
+                })
+            }>
+                <View style={s.choiceCtn}>
+                    <Text style={s.choiceTxt}>
+                        Pick Up
+                    </Text>
+                </View>
+            </TouchableOpacity>
         </View>
     )
 }
@@ -111,7 +100,8 @@ const s = StyleSheet.create({
     },
     head: {
         fontSize: 20,
-        color: colors.offGold
+        color: colors.offGold,
+        textAlign: 'center'
     },
     assignBttn: {
         backgroundColor: colors.black,
@@ -127,33 +117,22 @@ const s = StyleSheet.create({
         fontSize: 18,
         textAlign: 'center'
     },
-    serviceContainer: {
-        flexDirection: 'row',
-        flexWrap: 'wrap'
+    choiceCtn: {
+        borderColor: 'red',
+        borderRadius: 15,
+        borderWidth: 3,
+        height: 120,
+        justifyContent: 'center',
+        marginHorizontal: '10%',
+        backgroundColor: colors.orange,
+        marginBottom: 10,
     },
-    service: {
-        width: '50%',
-        alignItems: 'center',
-        height: 100,
-        borderColor: colors.offGold,
-        borderBottomColor: colors.offGold,
-        borderWidth: 1,
-        padding: 10
-    },
-    servHead: {
-        color: colors.offGold,
-        fontWeight: 'bold',
-        fontSize: 20,
-        textAlign: 'center'
-    },
-    servPrice: {
-        color: colors.secondaryOffGold,
-        fontWeight: 'bold',
-        fontSize: 18,
-    },
-    servDescription: {
+    choiceTxt: {
+        fontSize: 25,
+        fontWeight: '800',
         textAlign: 'center',
-    },
+        textAlignVertical: 'center'
+    }
 })
 
 export default CleanerInfo

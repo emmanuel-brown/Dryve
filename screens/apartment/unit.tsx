@@ -8,7 +8,7 @@ import {
     TouchableOpacity
 } from 'react-native'
 import { useGlobalContext } from '../../context/global'
-import { cancelUnitOrder, createOrder, getUnit } from '../../data/requests'
+import { cancelUnitOrder, clientDropoff, createOrder, getUnit } from '../../data/requests'
 import { UnitI } from '../../interface/api'
 import { MapStackParamsList } from '../../interface/navigation'
 import { colors } from '../../styles/colors'
@@ -132,9 +132,17 @@ const Unit = () => {
         }
     }
 
-    const aOMap = aO ? Object.entries(aO) : [] 
+    const handleDropOff = async () => {
+        try {
+            setLoading(true)
+            await clientDropoff(token, aO._id)
+            handleGetUnit()
+        } catch {
 
-    console.log('ao', aO)
+        } finally {
+            setLoading(false)
+        }
+    }
 
     return (
         <View style={ s.container }>
@@ -164,16 +172,36 @@ const Unit = () => {
                 </ScrollView>
             </View>
             <View style={s.actionSection}>
-                <TouchableOpacity onPress={() => !unit.activeOrder ? handleCreateOrder() : cancelOrder()}>
-                    <View style={s.actionBttn}>
-                        <Text style={s.actionBttnTxt}>
-                            { !unit.activeOrder ? 
-                                'Initiate order' :
-                                'Cancel Order'
-                            }
-                        </Text>
-                    </View>
-                </TouchableOpacity>
+                {
+                    aO?.status === 'Clothes To Cleaner' &&
+                    <TouchableOpacity onPress={() => cancelOrder()}>
+                        <View style={s.actionBttn}>
+                            <Text style={s.actionBttnTxt}>
+                                Cancel Order
+                            </Text>
+                        </View>
+                    </TouchableOpacity>
+                }
+                {
+                    !aO &&
+                    <TouchableOpacity onPress={() => handleCreateOrder()}>
+                        <View style={s.actionBttn}>
+                            <Text style={s.actionBttnTxt}>
+                                Create Order
+                            </Text>
+                        </View>
+                    </TouchableOpacity>
+                }
+                {
+                    aO?.status === 'Picked Up From Cleaner' && 
+                    <TouchableOpacity onPress={() => handleDropOff()}>
+                        <View style={s.actionBttn}>
+                            <Text style={s.actionBttnTxt}>
+                                Drop Off Order
+                            </Text>
+                        </View>
+                    </TouchableOpacity>
+                }
             </View>
         </View>
     )

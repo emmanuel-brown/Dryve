@@ -1,25 +1,49 @@
-import { StyleSheet } from 'react-native'
-import theme from '../styles/colors'
+import { StyleSheet, Image } from 'react-native'
+import theme, { colors } from '../styles/colors'
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
 import { NavigationContainer } from '@react-navigation/native'
 import MapNavigation from '../components/navigation/navMap'
 import { MainButtonParams } from '../interface/navigation'
-import CleanerList from './cleaners/CleanerList'
 import AccountNavigation from '../components/navigation/navAccount'
+import AONavigation from '../components/navigation/navActiveOrders'
+import CleanerNavigation from '../components/navigation/navCleaner'
 
 const Tab = createBottomTabNavigator<MainButtonParams>()
 
 const Home = () => {
     return (
         <NavigationContainer>
-            <Tab.Navigator initialRouteName='mapView'>
+            <Tab.Navigator 
+                initialRouteName='mapView'
+                screenOptions={{
+                    headerStyle: {
+                        backgroundColor: colors.darkGrey,
+                    },
+                    tabBarStyle:{
+                        backgroundColor: colors.darkGrey,
+                    },
+                    tabBarItemStyle:{
+                        // backgroundColor:'#00ff00',
+                        borderRadius:10,
+                    }
+                }}
+            >
                 <Tab.Screen 
                     name='cleaners'
-                    component={ CleanerList }
+                    component={ CleanerNavigation }
                     options={{
                         tabBarLabel: 'Cleaners',
-                        headerShown: false
-                    }} 
+                        headerShown: false,
+                        tabBarIcon(props) {
+                            
+                            return (
+                                <Image
+                                    style={{ width: 35, height: 35 }} 
+                                    source={require('../assets/images/cleaner_icon.png')}
+                                />
+                            )
+                        },
+                    }}
                 />
                 <Tab.Screen 
                     name="mapView" 
@@ -34,6 +58,14 @@ const Home = () => {
                     component={ AccountNavigation }
                     options={{
                         tabBarLabel: 'Account',
+                        headerShown: false
+                    }}
+                />
+                <Tab.Screen 
+                    name="activeOrders" 
+                    component={ AONavigation }
+                    options={{
+                        tabBarLabel: 'Active Orders',
                         headerShown: false
                     }}
                 />

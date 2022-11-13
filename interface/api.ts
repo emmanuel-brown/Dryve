@@ -18,7 +18,7 @@ export interface AddressI {
     state: string
     zipcode: string
     country: string
-    formatted?: string
+    formatted: string
     placeId?: string
     location: PointI
     default?: boolean //is it default pickup address... for now
@@ -47,6 +47,7 @@ export interface CleanerI {
     website?: string
     address: AddressI
     services: ServiceI[]
+    activeOrders: OrderI[]
     preferred?: boolean
 }
 
@@ -87,7 +88,15 @@ export const orderStatuses: OrderstatusT[] = [
 export interface OrderI {
     phoneNumber: any
     _id: string
-    apartment: string
+    apartment: {
+        _id: string
+        name: string
+        address: string
+        goToCleaner: string
+        primaryCleaner: string
+    }
+    building: string
+    unit: string
     client: {
         _id: string
         firstName: string,
@@ -177,7 +186,7 @@ export interface DriverI {
     bankAccountNumber?: string
     orders: string[]
     totalPayout?: number //in cents
-    activeOrders: string[]
+    activeOrders: OrderI[]
     location: PointI
 }
 
@@ -201,6 +210,7 @@ export interface AptBuildingI {
 }
 
 export interface AptI {
+    _id: string
     name: string,
     address: AddressI
     email: string

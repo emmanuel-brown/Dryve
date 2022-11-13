@@ -1,4 +1,4 @@
-import { AptI, ServiceI, UnitI } from "./api"
+import { AptI, CleanerI, ServiceI, UnitI } from "./api"
 import { CleanerInfoI } from "./screens"
 
 export type RootStackParamList = {
@@ -13,6 +13,7 @@ export type MainButtonParams = {
     orders: undefined
     cleaners: undefined
     account: undefined
+    activeOrders: undefined
 }
 
 export type MapStackParamsList = {
@@ -33,6 +34,34 @@ export type MapStackParamsList = {
     map: undefined
     cleanerInfo: {
         cleanerId: string
+    }
+    CleanerDropOff: {
+        cleanerId: string
+        clnName: string,
+    }
+    CleanerOrders: {
+        cleanerId: string
+        clnName: string,
+    }
+}
+
+export type ActiveOrdersParams = {
+    ActiveOrders: undefined
+    ViewOrder: {
+        orderId: string
+    }
+    Unit: {
+        apt: AptI
+        aptId: string
+        bldId: string
+        unitId: string
+    }
+}
+
+export type CleanerStackParams = {
+    cleanerList: {}
+    cleaner: {
+        cleanerId: CleanerI['_id']
     }
 }
 
